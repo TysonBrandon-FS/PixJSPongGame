@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Game</title>
+</head>
+
+<body>
+    <game id="game"></game>
+
+
+    <script src="https://pixijs.download/release/pixi.min.js"></script>
+    
+    <script type="module">
+        
+        const app = new PIXI.Application();
+        await app.init({ 
+            backgroundColor: "#3398b9", 
+            width: 800, 
+            height: 800 
+        });
+        document.getElementById("game").appendChild(app.canvas);
+
+       
+        const borderThickness = 10;
+        const borders = {
+            top: createBorder(0, 0, 800, borderThickness, "#ff0000"),
+            bottom: createBorder(0, 790, 800, borderThickness, "#ff0000"),
+            left: createBorder(0, 0, borderThickness, 800, "#ff0000"),
+            right: createBorder(790, 0, borderThickness, 800, "#ff0000"),
+        };
+
+        function createBorder(x, y, width, height, color) {
+            const rect = new PIXI.Graphics();
+            rect.beginFill(color);
+            rect.drawRect(0, 0, width, height);
+            rect.endFill();
+            rect.x = x;
+            rect.y = y;
+            app.stage.addChild(rect);
+            return rect;
+        }
+
+        
+        const circle = new PIXI.Graphics();
+        const circleRadius = 10;
+        circle.beginFill("#f5ef42");
+        circle.drawCircle(0, 0, circleRadius);
+        circle.endFill();
+        circle.x = 400; //starts in middle of screen with y
+        circle.y = 400;
+        app.stage.addChild(circle);
+
+
+        //extra requirement 3 random circle ball movement
+        let random = Math.round(Math.random() * 5) + 5
+        let random2 = Math.round(Math.random() * 5) + 5
+        let xv = random; // horizontal speed
+        let yv = random2; // vertical speed
+        console.log(xv, yv)
+
+        
+        const hitBorders = {
+            top: false,
+            bottom: false,
+            left: false,
+            right: false
+        };
+
+        const allBordersHit = new Promise((resolve) => {
+            app.ticker.add(() => {
+                circle.x += xv;
+                circle.y += yv;
+
+                //extra requirement 1 the circle radius is what stops the ball from overlapping
+                if (circle.x - circleRadius <= borderThickness && !hitBorders.left) {
+                    console.log("hit left working")
+                    hitBorders.left = true;
+                    borders.left.tint = "#000"; //extra requirement 2 changes border to black aftger being hti. same thing for the other border.hits
+                }
+                if (circle.x + circleRadius >= 800 - borderThickness && !hitBorders.right) {
+                    console.log("hit right working")
+                    hitBorders.right = true;
+                    borders.right.tint = "#000";
+                }
+                if (circle.y - circleRadius <= borderThickness && !hitBorders.top) {
+                    console.log("hit up working")
+                    hitBorders.top = true;
+                    borders.top.tint = "#000";
+                }
+                if (circle.y + circleRadius >= 800 - borderThickness && !hitBorders.bottom) {
+                    console.log("hit downn working")
+                    hitBorders.bottom = true;
+                    borders.bottom.tint = "#000";
+                }
+
+
+                if (Object.values(hitBorders).every(hit => hit)) {
+                    resolve();
+                    app.ticker.stop();
+                }
+
+
+                if (circle.x - circleRadius <= 0 || circle.x + circleRadius >= 800) {
+                    xv = -xv;
+                }
+                if (circle.y - circleRadius <= 0 || circle.y + circleRadius >= 800) {
+                    yv = -yv;
+                }
+            });
+        });
+
+        allBordersHit.then(() => {
+            setTimeout(() => {
+                alert("Game Over! The 4 walls have been hit!");
+            },100)
+            
+        });
+    </script>
+</body>
+</html>
